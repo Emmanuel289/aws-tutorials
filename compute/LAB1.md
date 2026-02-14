@@ -21,40 +21,41 @@ export AWS_SECRET_ACCESS_KEY=<value>
 export AWS_DEFAULT_REGION=<value>
 ```
 
-## 5 - Create a VPC
+## 4 - Create a VPC
 - Create a VPC with a single public subnet using the following field values
 and leaving the rest as defaults.
-VPC name: maximus-vpc
-Availability zone: us-east-1a
-IPv4 CIDR block for VPC: 10.0.0.0/16 (65,531 available IP addresses and 5 reserved for AWS)
-IPv4 CIDR block for subnet: 10.0.0.0/24 (251 available IP addresses and 5 reserved to AWS)
-Subnet name: maximus-subnet
+VPC name: <vpc-name>
+Availability zone: <availability-zone>
+IPv4 CIDR block for VPC: <vpc-cidr-block> (e.g., 10.0.0.0/16 comprising 65,531 available IP addresses and 5 reserved for AWS)
+IPv4 CIDR block for subnet: <subnet-cidr-block> (e.g., 10.0.0.0/24 comprising 251 available IP addresses and 5 reserved for AWS)
+Subnet name: <subnet-name>
 
 ```bash
 echo "Creating Maximus's VPC in US East 1"
 aws ec2 create-vpc \
---region us-east-1 \
---cidr-block 10.0.0.0/16 \
+# E.g., us-east-1
+--region <region> \ 
+--cidr-block <cidr-block> \
 --tag-specifications 'ResourceType=vpc,Tags=[{Key=Name,Value=maximus-vpc}]'
 
 echo "Verifying creation of vpc"
 aws ec2 describe-vpcs \
---vpc-id 'vpc-0e6c27e517e8196fc' # The ID assigned to maximus-vpc
+--vpc-id <vpc-id> # The ID that's assigned to the VPC
 
 echo "Creating Maximus's Subnet in US East 1a"
 aws ec2 create-subnet \
---vpc-id 'vpc-0e6c27e517e8196fc' \  
---availability-zone us-east-1a \
---cidr-block 10.0.0.0/24 \
+--vpc-id <vpc-id> \  
+--availability-zone <availabily-zone> \
+--cidr-block <cidr-block> \
 --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=maximus-subnet}]'
 
 echo 'Verify creation of subnet'
 aws ec2 describe-subnets \
---subnet-ids 'subnet-02209d5cd89cc422e' # The ID assigned to maximus-subnet
+--subnet-ids <subnet-id> # The ID that's assigned to the subnet
 ```
 
-## 6 - Create an EC2 instance and attach an EBS volume
-- Create an instance with the following configuration
+## 5 - Create an EC2 instance and attach an EBS volume
+- Create an instance, e.g., using the following configuration
 Amazon Machine Image (AMI): Amazon Linux 2 AMI (HVM), SSD volume type
 Instance Type: t2.micro
 Instance details: num of instances (1), network (maximus-vpc) subnet (maximus-subnet)
@@ -64,64 +65,72 @@ Security group: Default rule, allow all traffic from all hosts (0.0.0.0/0) to ac
 
 ```bash
 aws ec2 run-instances \
---image-id 'ami-0c1fe732b5494dc14' \
+# The ID of the image to use for the instance. Can be an AWS public image or one that's created by user.
+--image-id <ami-id> \ 
 --instance-type t2.micro \
---key-name maximus-ec2-keys \
---subnet-id 'subnet-02209d5cd89cc422e' \
+# The name of an SSH public/private key pair
+--key-name <key-name> \ 
+--subnet-id <subnet-id> \
 # The default allow-all security group
---security-group-ids 'sg-000c2851918f99a00' \ 
+--security-group-ids '<security-group-id>' \ 
 # Attaches an EBS volume to the instance
 --block-device-mappings '[{"DeviceName":"/dev/sda1","Ebs":{"VolumeSize":8,"VolumeType":"gp2","DeleteOnTermination":true}}]' \
 --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=maximus-server}]'
 
 # Verify creation of the instance
 aws ec2 describe-instances \
---instance-id i-0ac5568260fce883d
+# The id that's assigned to the instance
+--instance-id <instance-id>
+```
 
-# Connect to the instance via SSH by specifying its private ip address and the path to the private key on your machine
-ssh -i '~/.ssh/maximus-ec2-keys.pem' ec2-user@10.0.0.228
+## 6 -  Connect to the instance via SSH by specifying its private ip address and the path to the private key on the client's machine.
+```bash
+ssh -i /path/to/key-file.pem ec2-user@<instance-ip-address>
 ```
 - Generate and download a new key pair. This key pair will allow you to access your instance
-using SSH from your local machine. Save the key-pair carefully because the same private key cannot be regenerated
+using SSH from your local machine. Save the key-pair carefully because the same private key cannot be regenerated.
 
-## Troubleshooting errors with SSH access
-- Add SSH rule
+## 7 - Troubleshooting errors with SSH access
+- Ensure a security with an ingress rule that allows SSH traffic has been created:
+
 ```bash
 aws ec2 authorize-security-group-ingress \
---group-id sg-000c2851918f99a00 \
+--group-id <security-group-id> \
 --protocol tcp --port 22 \
---cidr 99.239.203.165/32 # My IP address
+--cidr <cidr-block> # A range of ip addresses in /32 notation, e.g., the client's IP address
 ```
 
-- Create and attach Internet Gateway
+- Verify that an internet gateway has been created and attached to the VPC:
+
 ```bash
 IGW_ID=$(aws ec2 create-internet-gateway --query 'InternetGateway.InternetGatewayId' --output yaml)
 
 aws ec2 attach-internet-gateway \
 --internet-gateway-id "${IGW_ID}" \
---vpc-id vpc-0e6c27e517e8196fc
+--vpc-id <vpc-id>
 ```
 
-- Add internet route
+- Add an internet route to the gateway and configure its destination cidr block. e.g., all ip addresses.
 ```bash
 aws ec2 create-route \
---route-table-id rtb-0fc84955db767db7a \
+--route-table-id <route-table-id> \
+# Route traffic from the network to all ip addresses
 --destination-cidr-block 0.0.0.0/0 \
 --gateway-id $IGW_ID
 ```
 
-- Allocate and associate Elastic IP
+- Allocate and associate Elastic IP.
 ```bash
 ALLOC_ID=$(aws ec2 allocate-address --domain vpc --query 'AllocationId' --output text)
-INSTANCE_ID="i-0ac5568260fce883d"
+INSTANCE_ID="<instance-id>"
 aws ec2 associate-address --instance-id $INSTANCE_ID --allocation-id $ALLOC_ID
 ```
 
 - Connect to the instance using the elastic public IP
 ```bash
 # Make sure the SSH key is not publicly viewable!
-chmod +x 400 ~/.ssh/maximus-ec2-keys.pem
-ssh -i "~/.ssh/maximus-ec2-keys.pem" ec2-user@98.89.109.252
+chmod +x 400 /path/to/key-file.pem
+ssh -i /path/to/key-file.pem ec2-user@<instance-ip-address>
 ```
 
 ## Cleanup all resources
@@ -137,16 +146,16 @@ aws ec2 delete-volume --volume-id $VOLUME_ID
 - Delete the remaining resources in the VPC following the order below:
 ```bash
 # Delete subnets in the VPC
-aws ec2 delete-subnet --subnet-id subnet-02209d5cd89cc422e
+aws ec2 delete-subnet --subnet-id <subnet-id>
 
 # Detach the internet gateway from the VPC
-aws ec2 detach-internet-gateway --internet-gateway-id igw-01d7fa87b222cfdc6 --vpc-id vpc-0e6c27e517e8196fc
+aws ec2 detach-internet-gateway --internet-gateway-id <igw-id> --vpc-id <vpc-id>
 
 # Delete the detached internet gateway
-aws ec2 delete-internet-gateway --internet-gateway-id igw-01d7fa87b222cfdc6
+aws ec2 delete-internet-gateway --internet-gateway-id <igw-id>
 
 # Delete the VPC
-aws ec2 delete-vpc --vpc-id vpc-0e6c27e517e8196fc
+aws ec2 delete-vpc --vpc-id <vpc-id>
 
 ```
 
