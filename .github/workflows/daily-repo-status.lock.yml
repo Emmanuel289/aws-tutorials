@@ -32,6 +32,7 @@
 
 name: "Daily Repo Status"
 "on":
+  pull_request:
   schedule:
   - cron: "22 3 * * *"
     # Friendly format: daily (scattered)
