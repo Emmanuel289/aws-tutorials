@@ -2,3 +2,9 @@
 .terraform
 .terraform.*
 terraform.tf*
+
+# VS code files
+.vscode
+
+# Agents (Copilot, Claude, etc)
+.github/agents/
