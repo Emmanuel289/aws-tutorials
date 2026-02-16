@@ -1,7 +1,8 @@
-# Compute Services
+# Compute Services - EC2
 ## EC2
 EC2 provides servers in the cloud. They can be on-demand, dedicated, spot(bidding), or reserved. An EC2 instance is a VM with user-defined configuration that runs in the cloud.
-How to connect to an instance using an SSH client and a private .pem key
+It's possible to connect to an instance using its public DNS/IP address, an SSH client and a private PEM encoded key by executing the following command:
+
 ```bash
 ssh -i '/path/to/key_file' public_dns_adress_of_instance
 ```
@@ -10,10 +11,8 @@ and private IP addresses. An EC2 instance can have multiple network interfaces.
 
 ## Load balancers
 A load balancer distributes traffic across multiple targets, such as EC2 instances in one or more AZs.
-AWS supports three types of load balancers, namely: Classic Load balancer (deprecated and not recommended), Network Load balancer, and Application
-Loadbalancer
-Launch templates: These are scripts that contain config information written either in JSON or YAML formats, to automate
-instance launches, simplify permission policies, and enforce best practices across an org.
+AWS supports three types of load balancers, namely: Classic Load balancer (deprecated and not recommended), Network Load balancer, and Application Loadbalancer
+Launch templates: These are scripts that contain config information written either in JSON or YAML formats, to automate instance launches, simplify permission policies, and enforce best practices across an org.
 
 ## Elastic Block Store (EBS)
 EBS is a storage solution for EC2 instances and is a physical hard disk that is attached to the EC2 instance to increase its storage.
