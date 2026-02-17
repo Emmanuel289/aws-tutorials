@@ -89,7 +89,7 @@ The structure of an event JSON is shown below.
     {
       "eventVersion": "2.0",
       "eventSource": "aws:s3",
-      "awsRegion": "<region>", // The name of the region where the lambda and bucket are deployed.
+      "awsRegion": "<region>",
       "eventTime": "1970-01-01T00:00:00.000Z",
       "eventName": "ObjectCreated:Put",
       "userIdentity": {
@@ -106,14 +106,14 @@ The structure of an event JSON is shown below.
         "s3SchemaVersion": "1.0",
         "configurationId": "testConfigRule",
         "bucket": {
-          "name": "<bucket-name>", // The name of the bucket that triggers the lambda function
+          "name": "<bucket-name>",
           "ownerIdentity": {
             "principalId": "EXAMPLE"
           },
           "arn": "arn:aws:s3:::<bucket-name>"
         },
         "object": {
-          "key": "<object-name>", // The name of the object that serves as a key in the event's record
+          "key": "<object-name>",
           "size": 1024,
           "eTag": "0123456789abcdef0123456789abcdef",
           "sequencer": "0A1B2C3D4E5F678901"
