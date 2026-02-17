@@ -158,6 +158,5 @@ aws ec2 delete-internet-gateway --internet-gateway-id <igw-id>
 aws ec2 delete-vpc --vpc-id <vpc-id>
 
 ```
-
-# Terraform config
-The terraform configuration for this lab can be found in the [infra](./infra/) directory
+# IaC
+The IaC configuration for this lab can be found in the [infra](./infra/) directory
