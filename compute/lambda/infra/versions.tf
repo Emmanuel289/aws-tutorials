@@ -5,12 +5,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.32"
     }
-
-
   }
 }
 
 provider "aws" {
-  region  = "us-east-1"
+  region  = "ca-central-1"
   profile = "default"
 }
