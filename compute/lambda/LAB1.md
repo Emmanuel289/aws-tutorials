@@ -156,4 +156,4 @@ aws iam delete-role --role-name <my-lambda-execution-role>
 ```
 
 # IaC
-The IaC configuration for this lab can be found in the [infra](./infra/) directory
+For reference, the IaC configuration for this lab can be found in the [infra](./basic-lambda/infra/) directory
