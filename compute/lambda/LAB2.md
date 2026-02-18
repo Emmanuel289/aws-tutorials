@@ -344,3 +344,6 @@ curl -X GET "$(terraform output -r base_url)/hello?Name=Terraform"
 ```
 # 6- Clean up your infrastructure
 Clean up the infrastructure you created by running the `terraform destroy` command and confirming at the prompt.
+
+# 7- IaC
+For reference, the IaC configuration for this lab can be found in the [infra](./lambda-api-gateway/infra/) directory
