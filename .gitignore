@@ -11,3 +11,7 @@
 *.zip
 *.tar*
 *.log
+
+# Virtualenv, package dependencies, and pycache folders
+.venv/
+__pycache__/
